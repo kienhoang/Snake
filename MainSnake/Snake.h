@@ -4,6 +4,8 @@
 #include <Windows.h>
 #include "Console.h"
 
+#define COLLUMNS 30
+#define ROWS 20
 #define MOVE_TOP 1
 #define MOVE_BOTTOM 2
 #define MOVE_LEFT 3
@@ -17,8 +19,7 @@
 #define HEAD 'O'
 #define BODY '*'
 #define FOOD '0'
-#define COLLUMNS 50
-#define ROWS 30
+#define BORDERATT 0x0002
 
 extern POINT * snakeArray;
 extern int dir; 
@@ -29,11 +30,15 @@ extern BOOL running;
 extern BOOL done;
 extern BOOL pause;
 extern BOOL dead;
+extern HANDLE *thr;
+extern DWORD thrid;
 
 void makeFood(void);
 void makeBorder(void);
 void moveSnake(void);
 void initSnake(void);
+BOOL HandleKeyEvent(void);
+void onDead(void);
 
 DWORD WINAPI snakeRun(LPVOID);
 

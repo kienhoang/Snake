@@ -10,6 +10,8 @@ BOOL done = TRUE;
 BOOL pause = FALSE;
 BOOL dead = FALSE;
 
+HANDLE * thr = (HANDLE *)calloc(1, sizeof(HANDLE)); 
+DWORD thrid;
 
 void makeFood(void){
 	POINT p;
@@ -28,32 +30,32 @@ void makeBorder(void){
 	p.y = 0;
 	for (i = 1; i < COLLUMNS - 1; i++){
 		p.x = i;
-		putCharAt(p,'-');
+		putCharAt(p,'-', BORDERATT);
 	}
 	p.y = ROWS - 1;
 	for (i = 1; i < COLLUMNS - 1; i++){
 		p.x = i;
-		putCharAt(p,'-');
+		putCharAt(p,'-', BORDERATT);
 	}
 	p.x = 0;
 	for (i = 1; i < ROWS - 1; i++){
 		p.y = i;
-		putCharAt(p,'|');
+		putCharAt(p,'|',BORDERATT);
 	}
 	p.x = COLLUMNS - 1;
 	for (i = 1; i < ROWS - 1; i++){
 		p.y = i;
-		putCharAt(p,'|');
+		putCharAt(p,'|', BORDERATT);
 	}
 
 	p.x = 0; p.y = 0;
-	putCharAt(p,'+');
+	putCharAt(p,'+', BORDERATT);
 	p.x = 0; p.y = ROWS - 1;
-	putCharAt(p,'+');
+	putCharAt(p,'+', BORDERATT);
 	p.x = COLLUMNS - 1; p.y = 0;
-	putCharAt(p,'+');
+	putCharAt(p,'+', BORDERATT);
 	p.x = COLLUMNS - 1; p.y = ROWS - 1;
-	putCharAt(p,'+');
+	putCharAt(p,'+', BORDERATT);
 }
 
 void moveSnake(void){
@@ -83,7 +85,7 @@ void moveSnake(void){
 				snakeArray[0].y--;
 				if (getcharAt(p) == BODY || p.y == 0){
 					running = FALSE;
-					dead = TRUE;
+					onDead();
 				}
 				putCharAt(snakeArray[0],HEAD);
 			}
@@ -112,7 +114,7 @@ void moveSnake(void){
 				snakeArray[0].y++;
 				if (getcharAt(p) == BODY || p.y == ROWS - 1){
 					running = FALSE;
-					dead = TRUE;
+					onDead();
 				}
 				putCharAt(snakeArray[0],HEAD);
 			}
@@ -141,7 +143,7 @@ void moveSnake(void){
 				snakeArray[0].x--;
 				if (getcharAt(p) == BODY || p.x == 0){
 					running = FALSE;
-					dead = TRUE;
+					onDead();
 				}
 				putCharAt(snakeArray[0],HEAD);
 			}
@@ -170,7 +172,7 @@ void moveSnake(void){
 				snakeArray[0].x++;
 				if (getcharAt(p) == BODY|| p.x == COLLUMNS - 1 ){
 					running = FALSE;
-					dead = TRUE;
+					onDead();
 				}
 				putCharAt(snakeArray[0],HEAD);
 			}
@@ -207,4 +209,59 @@ DWORD WINAPI snakeRun(LPVOID){
 		done = TRUE;
 	}
 	return 0;
-};
+}
+
+BOOL HandleKeyEvent(void){
+	char c = getKey();
+	switch(c){
+	case KEY_TOP:
+		if(dir != MOVE_BOTTOM && done){
+			dir = MOVE_TOP;
+			done = FALSE;
+		}
+		break;
+	case KEY_BOTTOM:
+		if (dir != MOVE_TOP && done && !pause){
+			dir = MOVE_BOTTOM;
+			done = FALSE;
+		}
+		break;
+	case KEY_LEFT:
+		if (dir != MOVE_RIGHT && done && !pause){
+			dir = MOVE_LEFT;
+			done = FALSE;
+		}
+		break;
+	case KEY_RIGHT:
+		if (dir != MOVE_LEFT && done  && !pause){
+			dir = MOVE_RIGHT;
+			done = FALSE;
+		}
+		break;
+	case KEY_SPACE:
+		if (pause){
+			running = TRUE;
+			thr[0] = CreateThread(NULL,0,snakeRun,NULL,NULL,&thrid);
+			pause = FALSE;
+		} else {
+			running = FALSE;
+			CloseHandle(thr[0]);
+			pause = TRUE;
+		}
+		break;
+	case KEY_ESC:
+		if(!pause){
+			CloseHandle(thr[0]);
+		}
+		return FALSE;
+	}
+	return TRUE;
+}
+
+void onDead(void){
+	dead = TRUE;
+	POINT p;
+	p.x = (COLLUMNS - strlen("GAME OVER"))/2 - 1;
+	p.y = 4*ROWS/5;
+	putStrAt(p,"GAME OVER", BORDERATT);
+}

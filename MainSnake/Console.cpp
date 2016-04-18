@@ -43,6 +43,7 @@ void moveCursor(int hor, int ver){
 int getKey(void){
 	// Define for Windows
 	int key = getch();
+	fflush(stdin);
 	return key;
 }
 
@@ -60,15 +61,24 @@ char getcharAt(POINT p){
 	//return consoleArray[p.x][p.y];
 }
 
-void putCharAt(POINT p, char c){
+void putCharAt(POINT p, char c, WORD Attributes){
 	CHAR_INFO ci;
 	ci.Char.AsciiChar = c;
 	ci.Char.UnicodeChar = c;
-	ci.Attributes = 7;
+	ci.Attributes = Attributes;
 	int x = p.x, y = p.y;
 	COORD xy = { 0, 0 }, 
 		size = {1, 1};
 	SMALL_RECT rect = { x, y, x, y };
 	WriteConsoleOutput(hOutput,&ci,size,xy,&rect);
 	//consoleArray[p.x][p.y] = c;
+}
+
+void putStrAt(POINT p, const char *c, WORD Attributes){
+	int i;
+	int len = strlen(c);
+	for (i = 0; i < len; i++){
+		p.x++;
+		putCharAt(p,c[i], Attributes);
+	}
 }
